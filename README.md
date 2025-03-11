@@ -1,4 +1,4 @@
-# GLA-FD
+# Finger Vein Recognition Based on Vision Transformer with Feature Decoupling for Online Payment Applications
 This repository implements a global-local attention model based on feature decoupling (GLA-FD) for finger vein recognition. 
 
 # Database
