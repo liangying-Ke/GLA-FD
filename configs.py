@@ -20,49 +20,49 @@ def get_basic_params():
 
 def get_dataset_params(args):
     if args.datasets == 'FV-USM':
-        args.split = 0.3
+        args.split = '2:1'
         args.classes = 492
         args.pad_height_width = 300
         args.data_type = [None]
-        args.data_root = 'D:/LiangYing/Research/Databases/vein/FV-USM'
+        args.data_root = 'C:/LiangYing/Databases/vein/FV-USM'
         args.root_model = './checkpoint/FV-USM'
         args.annot_file = './datasets/annotations_fvusm.pkl'
 
-    elif args.datasets == 'PLUSVein-FV3':
-        args.split = 0.3
-        args.classes = 360
-        args.pad_height_width = 736
-        args.data_type = ['LED', 'LASER']
-        args.data_root = 'D:/LiangYing/Research/Databases/vein/PLUSVein-FV3/PLUSVein-FV3-ROI_combined/ROI'
-        args.root_model = './checkpoint/PLUSVein-FV3'
-        args.annot_file = './datasets/annotations_plusvein.pkl'
-
     elif args.datasets == 'MMCBNU_6000':
-        args.split = 0.2
+        args.split = '3:2'
         args.classes = 600
         args.pad_height_width = 128
         args.data_type = [None]
-        args.data_root = 'D:/LiangYing/Research/Databases/vein/MMCBNU_6000/ROIs'
+        args.data_root = 'C:/LiangYing/Databases/vein/MMCBNU_6000/ROIs'
         args.root_model = './checkpoint/MMCBNU'
         args.annot_file = './datasets/annotations_mmcbnu.pkl'
             
     elif args.datasets == 'UTFVP':
-        args.split = 0.5
+        args.split = '1:3'
         args.classes = 360
         args.pad_height_width = 672
         args.data_type = [None]
-        args.data_root = 'D:/LiangYing/Research/Databases/vein/UTFVP/data'
+        args.data_root = 'C:/LiangYing/Databases/vein/UTFVP/data'
         args.root_model = './checkpoint/UTFVP'
         args.annot_file = './datasets/annotations_utfvp.pkl'
             
     elif args.datasets == 'NUPT-FPV':
-        args.split = 0.5
+        args.split = '2:3'
         args.classes = 840
         args.pad_height_width = 450
         args.data_type = [None]
-        args.data_root = 'D:/LiangYing/Research/Databases/vein/NUPT-FPV'
+        args.data_root = 'C:/LiangYing/Databases/vein/NUPT-FPV'
         args.root_model = './checkpoint/NUPT'
         args.annot_file = './datasets/annotations_nupt.pkl'
+        
+    elif args.datasets == 'PLUSVein-FV3':
+        args.split = '3:2'
+        args.classes = 360
+        args.pad_height_width = 736
+        args.data_type = ['LED', 'LASER']
+        args.data_root = 'C:/LiangYing/Databases/vein/PLUSVein-FV3/PLUSVein-FV3-ROI_combined/ROI'
+        args.root_model = './checkpoint/PLUSVein-FV3'
+        args.annot_file = './datasets/annotations_plusvein.pkl'
     return args
 
 

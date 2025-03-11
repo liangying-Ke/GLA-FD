@@ -7,45 +7,44 @@ from tqdm import tqdm
 
 
 def create_FVUSM_annotation(args):
-	def iter(root, train_samples=[], val_samples=[], test_samples=[], sub2classes={}, phase='train'):
+	def iter(root, train_samples=[], test_samples=[], sub2classes={}, phase='train'):
 		for sub in tqdm(os.listdir(root)):
 			if not os.path.isdir(os.path.join(root, sub)):
 				continue
 			paths = glob.glob(os.path.join(root, sub, '*.jpg'))
 			random.shuffle(paths)
-			breakpoints = int(len(paths) * args.split)
-			for_val = paths[:breakpoints]
-			for_test = paths[breakpoints:breakpoints*2]
+
+			train, test = args.split.split(':')
+			ratio = int(test) / (int(train) + int(test))
+			bps = int(len(paths) * ratio)
+			for_test = paths[:bps]
+
 			if sub not in sub2classes:
 				sub2classes[sub] = len(sub2classes)
 
 			for path in paths:
-				if path in for_val:
-					val_samples.append({'path':path, 'label':sub2classes[sub]})
-				elif path in for_test:
+				if path in for_test:
 					test_samples.append({'path':path, 'label':sub2classes[sub]})
 				else:
 					train_samples.append({'path':path, 'label':sub2classes[sub]})
 
-		return train_samples, val_samples, test_samples, sub2classes
+		return train_samples, test_samples, sub2classes
 	
-	trainingSamples, validatingSamples, testingSamples, sub2classes = iter(os.path.join(args.data_root, '1st_session', 'extractedvein'))
-	trainingSamples, validatingSamples, testingSamples, sub2classes = iter(os.path.join(args.data_root, '2nd_session', 'extractedvein'), trainingSamples, validatingSamples, testingSamples, sub2classes)
+	train_samples, test_samples, sub2classes = iter(os.path.join(args.data_root, '1st_session', 'extractedvein'))
+	train_samples, test_samples, sub2classes = iter(os.path.join(args.data_root, '2nd_session', 'extractedvein'), train_samples, test_samples, sub2classes)
 	pickle.dump({
-		'Training_Set':trainingSamples, 
-		'Validating_Set':validatingSamples, 
-		'Testing_Set':testingSamples,
+		'train_set':train_samples, 
+		'test_set':test_samples,
 	}, open(args.annot_file, 'wb'))
-	print(f'train_samples: {len(trainingSamples)}')
-	print(f'val_samples: {len(validatingSamples)}')
-	print(f'test_samples: {len(testingSamples)}')
-	print(testingSamples[0])
+	print(f'train_samples: {len(train_samples)}')
+	print(f'test_samples: {len(test_samples)}')
+	print(test_samples[0])
 
 
 def create_PLUSVein_annotation(args):
 	def iter(root, Where):
 		sub2classes = {}
-		trainingSamples, validatingSamples, testingSamples = [], [], []
+		train_samples, test_samples = [], []
 		data_path = os.path.join(root, Where)
 
 		for folder in tqdm(os.listdir(data_path)):
@@ -56,49 +55,45 @@ def create_PLUSVein_annotation(args):
 				identity = f'{folder}_{idx}'
 				filter_paths = [path for path in paths if identity in path]
 				random.shuffle(filter_paths)
-				breakpoints = int(len(filter_paths) * args.split)
-				forTest = filter_paths[:breakpoints]
-				forValidate = filter_paths[breakpoints:breakpoints*2]
+				
+				train, test = args.split.split(':')
+				ratio = int(test) / (int(train) + int(test))
+				bps = int(len(filter_paths) * ratio)
+				for_test = filter_paths[:bps]
 
 				if not identity in sub2classes:
 					sub2classes[identity] = len(sub2classes)
 			
 				for path in filter_paths:
-					if path in forValidate:
-						validatingSamples.append({'path':path, 'label':sub2classes[identity]})
-					elif path in forTest:
-						testingSamples.append({'path':path, 'label':sub2classes[identity]})
+					if path in for_test:
+						test_samples.append({'path':path, 'label':sub2classes[identity]})
 					else:
-						trainingSamples.append({'path':path, 'label':sub2classes[identity]})
-		return trainingSamples, validatingSamples, testingSamples
+						train_samples.append({'path':path, 'label':sub2classes[identity]})
+		return train_samples, test_samples
 	
-	trainingSamples_LED, validatingSamples_LED, testingSamples_LED = iter(
-		args.data_root, os.path.join('PLUS-FV3-LED', 'PALMAR', '01'))
-	trainingSamples_LASER, validatingSamples_LASER, testingSamples_LASER = iter(
-		args.data_root, os.path.join('PLUS-FV3-Laser', 'PALMAR', '01'))
+
+	train_samples_LED, test_samples_LED = iter(args.data_root, os.path.join('PLUS-FV3-LED', 'PALMAR', '01'))
+	train_samples_LASER, test_samples_LASER = iter(args.data_root, os.path.join('PLUS-FV3-Laser', 'PALMAR', '01'))
 	pickle.dump({
 		'LED':{
-			'Training_Set':trainingSamples_LED, 
-			'Validating_Set':validatingSamples_LED, 
-			'Testing_Set':testingSamples_LED,
+			'train_set':train_samples_LED, 
+			'test_set':test_samples_LED,
 		},
 		'LASER':{
-			'Training_Set':trainingSamples_LASER, 
-			'Validating_Set':validatingSamples_LASER, 
-			'Testing_Set':testingSamples_LASER,
+			'train_set':train_samples_LASER, 
+			'test_set':test_samples_LASER,
 		}
 	}, open(args.annot_file, 'wb'))
-	print(f'train_samples: {len(trainingSamples_LED)}')
-	print(f'val_samples: {len(validatingSamples_LED)}')
-	print(f'test_samples: {len(testingSamples_LED)}')
-	print(testingSamples_LASER[0])
+	print(f'train_samples: {len(train_samples_LED)}')
+	print(f'test_samples: {len(test_samples_LED)}')
+	print(test_samples_LED[0])
 
 
 
 def create_MMCBNU_annotation(args):
 	def iter(root_path):
 		sub2classes = {}
-		training_samples, validating_samples, testing_samples = [], [], []
+		train_samples, test_samples = [], []
 
 		for sub in tqdm(os.listdir(root_path)):
 			sub_path = os.path.join(root_path, sub)
@@ -115,39 +110,38 @@ def create_MMCBNU_annotation(args):
 				paths = glob.glob(os.path.join(finger_path, '*.bmp'))
 				
 				random.shuffle(paths)
-				breakpoints = int(len(paths) * args.split)
-				forTest = paths[:breakpoints]
-				forValidate = paths[breakpoints:breakpoints*2]
 				
+				train, test = args.split.split(':')
+				ratio = int(test) / (int(train) + int(test))
+				bps = int(len(paths) * ratio)
+				for_test = paths[:bps]
+
 				if not finger_path in sub2classes:
 					sub2classes[finger_path] = len(sub2classes)
+
 				for path in paths:
-					if path in forValidate:
-						validating_samples.append({'path':path, 'label':sub2classes[finger_path]})
-					elif path in forTest:
-						testing_samples.append({'path':path, 'label':sub2classes[finger_path]})
+					if path in for_test:
+						test_samples.append({'path':path, 'label':sub2classes[finger_path]})
 					else:
-						training_samples.append({'path':path, 'label':sub2classes[finger_path]})
-		return training_samples, validating_samples, testing_samples
+						train_samples.append({'path':path, 'label':sub2classes[finger_path]})
+		return train_samples, test_samples
 	
-	training_samples, validating_samples, testing_samples = iter(args.data_root)
+	train_samples, test_samples = iter(args.data_root)
 	pickle.dump({
-		'Training_Set':training_samples, 
-		'Validating_Set':validating_samples, 
-		'Testing_Set':testing_samples,
+		'train_set':train_samples, 
+		'test_set':test_samples,
 	}, open(args.annot_file, 'wb'))
 
-	print(f'train_samples: {len(training_samples)}')
-	print(f'val_samples: {len(validating_samples)}')
-	print(f'test_samples: {len(testing_samples)}')
-	print(training_samples[0])
+	print(f'train_samples: {len(train_samples)}')
+	print(f'test_samples: {len(test_samples)}')
+	print(train_samples[0])
 
 
 
 def create_UTFVP_annotation(args):
 	def iter(root_path):
 		sub2classes = {}
-		training_samples, validating_samples, testing_samples = [], [], []
+		train_samples, test_samples = [], []
 
 		for sub in tqdm(os.listdir(root_path)):
 			sub_path = os.path.join(root_path, sub)
@@ -159,35 +153,36 @@ def create_UTFVP_annotation(args):
 				paths = glob.glob(os.path.join(sub_path, f'{sub}_{finger}_*.png'))
 				
 				random.shuffle(paths)
-				breakpoints = int(len(paths) * args.split)
-				forTest = paths[:breakpoints]
 				
+				train, test = args.split.split(':')
+				ratio = int(test) / (int(train) + int(test))
+				bps = int(len(paths) * ratio)
+				for_test = paths[:bps]
+
 				if not f'{sub}_{finger}' in sub2classes:
 					sub2classes[f'{sub}_{finger}'] = len(sub2classes)
-				for path in paths:
-					if path in forTest:
-						testing_samples.append({'path':path, 'label':sub2classes[f'{sub}_{finger}']})
-						validating_samples.append({'path':path, 'label':sub2classes[f'{sub}_{finger}']})
-					else:
-						training_samples.append({'path':path, 'label':sub2classes[f'{sub}_{finger}']})
 
-		return training_samples, validating_samples, testing_samples
+				for path in paths:
+					if path in for_test:
+						test_samples.append({'path':path, 'label':sub2classes[f'{sub}_{finger}']})
+					else:
+						train_samples.append({'path':path, 'label':sub2classes[f'{sub}_{finger}']})
+
+		return train_samples, test_samples
 	
-	training_samples, validating_samples, testing_samples = iter(args.data_root)
+	train_samples, test_samples = iter(args.data_root)
 	pickle.dump({
-		'Training_Set':training_samples, 
-		'Validating_Set':validating_samples, 
-		'Testing_Set':testing_samples,
+		'train_set':train_samples, 
+		'test_set':test_samples,
 	}, open(args.annot_file, 'wb'))
 
-	print(f'train_samples: {len(training_samples)}')
-	print(f'val_samples: {len(validating_samples)}')
-	print(f'test_samples: {len(testing_samples)}')
-	print(training_samples[0])
+	print(f'train_samples: {len(train_samples)}')
+	print(f'test_samples: {len(test_samples)}')
+	print(train_samples[0])
 
 
 def create_NUPT_annotation(args):
-	def iter(root_path, training_samples=[], validating_samples=[], testing_samples=[], sub2classes={}):
+	def iter(root_path, train_samples=[], test_samples=[], sub2classes={}):
 
 		for sub in tqdm(os.listdir(root_path)):
 			sub_path = os.path.join(root_path, sub)
@@ -198,35 +193,34 @@ def create_NUPT_annotation(args):
 			paths = glob.glob(os.path.join(sub_path, f'*.bmp'))
 			
 			random.shuffle(paths)
-			forTrain = paths[:4]
-			forVal = paths[4:5]
 			
+			train, test = args.split.split(':')
+			ratio = int(test) / (int(train) + int(test))
+			bps = int(len(paths) * ratio)
+			for_test = paths[:bps]
+
 			if not sub in sub2classes:
 				sub2classes[sub] = len(sub2classes)
 
 			for path in paths:
-				if path in forVal:
-					validating_samples.append({'path':path, 'label':sub2classes[sub]})
-				elif path in forTrain:
-					training_samples.append({'path':path, 'label':sub2classes[sub]})
+				if path in for_test:
+					test_samples.append({'path':path, 'label':sub2classes[sub]})
 				else:
-					testing_samples.append({'path':path, 'label':sub2classes[sub]})
+					train_samples.append({'path':path, 'label':sub2classes[sub]})
 
-		return training_samples, validating_samples, testing_samples, sub2classes
+		return train_samples, test_samples, sub2classes
 	
 	
-	training_samples, validating_samples, testing_samples, sub2classes = iter(os.path.join(args.data_root, 'Process_gray_full_840_1class', 'FV_process_gray_1class'))
-	training_samples, validating_samples, testing_samples, sub2classes = iter(os.path.join(args.data_root, 'Process_gray_full_840_2class', 'FV_process_gray_2class'), training_samples, validating_samples, testing_samples, sub2classes)
+	train_samples, test_samples, sub2classes = iter(os.path.join(args.data_root, 'Process_gray_full_840_1class', 'FV_process_gray_1class'))
+	train_samples, test_samples, sub2classes = iter(os.path.join(args.data_root, 'Process_gray_full_840_2class', 'FV_process_gray_2class'), train_samples, test_samples, sub2classes)
 	pickle.dump({
-		'Training_Set':training_samples, 
-		'Validating_Set':validating_samples, 
-		'Testing_Set':testing_samples,
+		'train_set':train_samples, 
+		'test_set':test_samples,
 	}, open(args.annot_file, 'wb'))
 
-	print(f'train_samples: {len(training_samples)}')
-	print(f'val_samples: {len(validating_samples)}')
-	print(f'test_samples: {len(testing_samples)}')
-	print(training_samples[0])
+	print(f'train_samples: {len(train_samples)}')
+	print(f'test_samples: {len(test_samples)}')
+	print(train_samples[0])
 
 
 if __name__== '__main__':
