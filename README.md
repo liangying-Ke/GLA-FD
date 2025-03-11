@@ -14,7 +14,6 @@ This repository implements a Global-Local Attention Model based on Feature Decou
 * torch 2.2.2
 * torchvision 0.17.2
 * numpy 1.24.4
-* albumentations 1.4.18
 * scikit-learn 1.3.2
 * pytorch-model-summary 0.1.2
 * ptflops 0.7.3
