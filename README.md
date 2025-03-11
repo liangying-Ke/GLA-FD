@@ -1,5 +1,5 @@
 # GLA-FD
-This repository implements a Global-Local Attention Model based on Feature Decoupling (GLA-FD) for finger vein recognition. 
+This repository implements a global-local attention model based on feature decoupling (GLA-FD) for finger vein recognition. 
 
 # Database
 1. [FV-USM](http://drfendi.com/fv_usm_database/)
