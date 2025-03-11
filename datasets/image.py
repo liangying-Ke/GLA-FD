@@ -48,15 +48,13 @@ class ImagesDataset(Dataset):
         if self.data_type is not None:
             pkl = pkl[self.data_type]
         if self.phase == 'train':
-            self.data = pkl['Training_Set']
-        elif self.phase == 'val':
-            self.data = pkl['Validating_Set']
+            self.data = pkl['train_set']
         elif self.phase == 'test':
-            self.data = pkl['Testing_Set']
+            self.data = pkl['test_set']
         else:
             raise ValueError("train mode must be in : Train or Validation")
         self.dataset_size = len(self.data)
-        self._get_mean_std(pkl['Training_Set'])
+        self._get_mean_std(pkl['train_set'])
 
     def _get_mean_std(self, data):
         dataset_size = len(data)
