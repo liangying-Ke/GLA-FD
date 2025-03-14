@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from models.utils import ConvModule, BlurPool, MakeupAttention
+from models.utils import ConvModule, BlurPool, Attention
 from timm.models.layers import DropPath
 from timm.models.vision_transformer import trunc_normal_
 
@@ -75,7 +75,7 @@ class GlobalLocalInformationBlock(nn.Module):
         if use_dual_info:
             self.mlp = FFN(dim_in, dim_in)
             self.proj2 = ConvModule(dim_in, dim_in, kernel_size=3, group_mode='DW', mode='CONV-NORM-ACTV')
-        self.attn = MakeupAttention(dim_in)
+        self.attn = Attention(dim_in)
 
     def forward(self, x):
         if self.use_freq_coupling:
