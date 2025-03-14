@@ -68,7 +68,6 @@ def evaluate(*kwargs):
     args = kwargs[0]
     model = kwargs[1]
     test_DataLoader = kwargs[2]
-    valid_DataLoader = kwargs[3]
     
     dists = []
     labels = []
@@ -80,24 +79,13 @@ def evaluate(*kwargs):
         inputs = inputs.to(args.device)
         targets = targets.to(args.device)
         with torch.set_grad_enabled(False):
-            outputs, embeds, cos_theta, norms = model(inputs)
+            outputs, embeds, _, _ = model(inputs)
             embeds = F.normalize(embeds, dim=1)
         _, outputs = torch.max(outputs, 1)
         outputs_list.extend(outputs.cpu().detach().numpy())
         embeds_list.extend(embeds.cpu().detach().numpy())
         targets_list.extend(targets.cpu().detach().numpy())
     
-    for inputs, targets in tqdm(valid_DataLoader):
-        inputs = inputs.to(args.device)
-        targets = targets.to(args.device)
-        with torch.set_grad_enabled(False):
-            outputs, embeds, cos_theta, norms = model(inputs)
-            embeds = F.normalize(embeds, dim=1)
-        _, outputs = torch.max(outputs, 1)
-        outputs_list.extend(outputs.cpu().detach().numpy())
-        embeds_list.extend(embeds.cpu().detach().numpy())
-        targets_list.extend(targets.cpu().detach().numpy())
-
     outputs_list = np.array(outputs_list)
     embeds_list = np.array(embeds_list)
     targets_list = np.array(targets_list)
@@ -138,8 +126,6 @@ def main(args, database_results={}):
     for data_type in args.data_type:
         test_dataset = datasets.ImagesDataset(args=args, data_type=data_type, phase='test')
         test_DataLoader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, persistent_workers=True, pin_memory=True)
-        valid_dataset = datasets.ImagesDataset(args=args, data_type=data_type, phase='val')
-        valid_DataLoader = torch.utils.data.DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, persistent_workers=True, pin_memory=True)
         
         model = _get_model(args)
         input1 = torch.zeros([1, 3, args.img_size, args.img_size], device=args.device)
@@ -153,7 +139,7 @@ def main(args, database_results={}):
             weights = torch.load(os.path.join(args.root_model, str(data_type), f"Backbone_ckpt.best{metrics}.pth.tar"))
 
             model.load_state_dict(weights['model_state_dict']) 
-            eer, acc, avg_acc = evaluate(args, model, test_DataLoader, valid_DataLoader)
+            eer, acc, avg_acc = evaluate(args, model, test_DataLoader)
             
             is_best = best_eer > eer
             best_eer = min(best_eer, eer)
@@ -175,8 +161,7 @@ if __name__ == '__main__':
     database_results = {}
     args = configs.get_all_params()
     args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # for dataset in ['FV-USM', 'PLUSVein-FV3', 'MMCBNU_6000', 'UTFVP', 'NUPT-FPV']:
-    for dataset in ['NUPT-FPV']:
+    for dataset in ['FV-USM', 'PLUSVein-FV3', 'MMCBNU_6000', 'UTFVP', 'NUPT-FPV']:
         args.datasets = dataset
         args = configs.get_dataset_params(args)
         database_results = main(args, database_results)
