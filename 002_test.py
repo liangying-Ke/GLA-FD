@@ -19,7 +19,7 @@ from tqdm.contrib import tzip
 
 
 def _get_model(args):
-    model = models.Model(num_classes=args.classes).to(args.device)
+    model = models.LightWeightedModel(num_classes=args.classes).to(args.device)
     return model
 
 dist_type='cosine'
