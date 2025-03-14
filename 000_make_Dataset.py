@@ -225,7 +225,8 @@ def create_NUPT_annotation(args):
 
 if __name__== '__main__':
 	args = configs.get_all_params()
-	
+	configs.setup_seed(args.seed)
+
 	args.datasets = 'FV-USM'
 	args = configs.get_dataset_params(args)
 	create_FVUSM_annotation(args)

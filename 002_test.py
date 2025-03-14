@@ -19,7 +19,7 @@ from tqdm.contrib import tzip
 
 
 def _get_model(args):
-    model = models.LightWeightedModel(num_classes=args.classes).to(args.device)
+    model = models.Model(num_classes=args.classes).to(args.device)
     return model
 
 dist_type='cosine'
@@ -116,9 +116,8 @@ def evaluate(*kwargs):
     labels_2 = labels_2[:len(labels_1)]
     labels = np.hstack([labels_1, labels_2])
 
-    avg_acc, eer = calculate_average_metrics(dists, labels)
-    acc = skm.accuracy_score(targets_list, outputs_list) * 100
-    return eer, acc, avg_acc
+    acc, eer = calculate_average_metrics(dists, labels)
+    return eer, acc
 
 
 def main(args, database_results={}):
@@ -139,19 +138,17 @@ def main(args, database_results={}):
             weights = torch.load(os.path.join(args.root_model, str(data_type), f"Backbone_ckpt.best{metrics}.pth.tar"))
 
             model.load_state_dict(weights['model_state_dict']) 
-            eer, acc, avg_acc = evaluate(args, model, test_DataLoader)
+            eer, acc = evaluate(args, model, test_DataLoader)
             
             is_best = best_eer > eer
             best_eer = min(best_eer, eer)
             if is_best:
                 database_results[f'{args.datasets}_{data_type}'] = {
                     'acc':f'{acc:.2f}',
-                    'avg_acc':f'{avg_acc:.2f}',
                     'eer':f'{eer:.2f}'
                 }
             print(f'Database: {args.datasets}, data_type: {data_type}, Metrics: {metrics}')
             print(f'Accuracy: {acc:.2f}')
-            print(f'Avg Accuracy: {avg_acc:.2f}')
             print(f'EER: {eer:04f}')
             print('-'*100)
         print('='*100)
