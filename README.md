@@ -18,3 +18,7 @@ This repository implements a global-local attention model based on feature decou
 * pytorch-model-summary 0.1.2
 * ptflops 0.7.3
 * tqdm 
+
+# Citation
+```
+```
