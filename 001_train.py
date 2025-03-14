@@ -89,7 +89,7 @@ def main(args):
         best_acc = float('-inf')
         best_f1 = float('-inf')
 
-        model = models.LightWeightedModel(num_classes=args.classes).to(args.device)
+        model = models.Model(num_classes=args.classes).to(args.device)
         criterions = {'CE':nn.CrossEntropyLoss(label_smoothing=0.2),}
         optimizer, scheduler = _get_optimizer(args, model)
 
