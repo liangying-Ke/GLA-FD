@@ -33,57 +33,6 @@ class ConvModule(nn.Module):
         return self.module(x)
         
 
-def cal_rel_pos_spatial(attn, q, has_cls_embed, q_shape, k_shape, rel_pos_h, rel_pos_w, ):
-    sp_idx = 1 if has_cls_embed else 0
-    q_h, q_w = q_shape
-    k_h, k_w = k_shape
-
-    q_h_ratio = max(k_h / q_h, 1.0)
-    k_h_ratio = max(q_h / k_h, 1.0)
-    dist_h = (torch.arange(q_h)[:, None] * q_h_ratio - torch.arange(k_h)[None, :] * k_h_ratio)
-    dist_h += (k_h - 1) * k_h_ratio
-    q_w_ratio = max(k_w / q_w, 1.0)
-    k_w_ratio = max(q_w / k_w, 1.0)
-    dist_w = (torch.arange(q_w)[:, None] * q_w_ratio - torch.arange(k_w)[None, :] * k_w_ratio)
-    dist_w += (k_w - 1) * k_w_ratio
-
-    Rh = rel_pos_h[dist_h.long()]
-    Rw = rel_pos_w[dist_w.long()]
-
-    B, n_head, q_N, dim = q.shape
-
-    r_q = q[:, :, sp_idx:].reshape(B, n_head, q_h, q_w, dim)
-    rel_h = torch.einsum("byhwc, hkc -> byhwk", r_q, Rh)
-    rel_w = torch.einsum("byhwc, wkc -> byhwk", r_q, Rw)
-
-    attn[:, :, sp_idx:, sp_idx:] = (
-        attn[:, :, sp_idx:, sp_idx:].view(B, -1, q_h, q_w, k_h, k_w)
-        + rel_h[:, :, :, :, :, None]
-        + rel_w[:, :, :, :, None, :]
-    ).view(B, -1, q_h * q_w, k_h * k_w)
-
-    return attn
-
-
-class SPADE(nn.Module):
-    def __init__(self, dim):
-        super().__init__()
-        self.param_free_norm = nn.BatchNorm2d(dim, affine=False)
-        self.mlp_gamma_beta = nn.Sequential(
-            nn.Conv2d(dim, dim, kernel_size=3, padding=1, groups=dim),
-            nn.GELU(),
-            nn.Conv2d(dim, dim*2, kernel_size=1)
-        )
-
-    def forward(self, local_feat, global_feat):
-        # Part 1. generate parameter-free normalized activations
-        normalized = self.param_free_norm(local_feat)
-        # Part 2. produce scaling and bias conditioned on semantic map
-        gamma, beta = self.mlp_gamma_beta(global_feat).chunk(2, dim=1)
-        # feature modulate
-        return normalized * (1 + gamma) + beta
-
-
 def get_pad_layer(pad_type):
     if pad_type in ['refl','reflect']:
         PadLayer = nn.ReflectionPad2d
