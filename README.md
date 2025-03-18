@@ -21,4 +21,14 @@ This repository implements a global-local attention model based on feature decou
 
 # Citation
 ```
+@ARTICLE{10930476,
+  author={Ke, Liang-Ying and Lin, Yi-Chen and Hsia, Chih-Hsien},
+  journal={IEEE Access}, 
+  title={Finger Vein Recognition Based on Vision Transformer with Feature Decoupling for Online Payment Applications}, 
+  year={2025},
+  volume={},
+  number={},
+  pages={1-1},
+  keywords={Feature extraction;Fingers;Veins;Biometrics;Image recognition;Lighting;Security;Computational modeling;Translation;Computer architecture;Finger vein;Biometric recognition;Vision transformer;Convolutional neural network;Online payment},
+  doi={10.1109/ACCESS.2025.3552075}}
 ```
